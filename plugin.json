@@ -1,0 +1,25 @@
+{
+  "slug": "WachobDIY",
+  "name": "Wachob DIY",
+  "version": "2.0.0",
+  "license": "proprietary",
+  "brand": "wachob",
+  "author": "Gabe Wachob",
+  "authorEmail": "gwachob@wachob.com",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "CirclesOfHell",
+      "name": "Circles Of Hell",
+      "description": "Circles of 5ths",
+      "tags": [
+        "Sequencer"
+      ]
+    }
+  ]
+}
