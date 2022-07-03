@@ -4,6 +4,7 @@
 
 struct Circles : Module {
 	enum ParamId {
+		INTERVAL_PARAM,
 		PARAMS_LEN
 	};
 	enum InputId {
@@ -26,6 +27,7 @@ struct Circles : Module {
 
 	Circles() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+		configParam(INTERVAL_PARAM, 1, 11, 7, "Step Interval", " semitone(s)");
 		configOutput(OUTPUT_OUTPUT, "");
 		stepTimer.reset();
 	}
@@ -37,13 +39,9 @@ struct Circles : Module {
 			outputs[0].setVoltage(curFreq);
 		} else if (stepTimer.process(args.sampleTime) > 1) {
 			stepTimer.reset();
-			if (circleStep == 11) {
-				circleStep = 0;
-				curFreq = START_FREQ;
-			} else {
-				circleStep++;
-				curFreq = START_FREQ + /* 1v * */ simd::pow(2.f, circleStep/12.f);
-			}
+			circleStep = (circleStep + int(params[INTERVAL_PARAM].getValue()))  % 12;
+			curFreq = START_FREQ + /* 1v * */ simd::pow(2.f, circleStep/12.f);
+			std::cerr << "Step is " << circleStep << "\n";
 			std::cerr << "Updating output to " << std::fixed << std::setw(4) << std::setprecision(4) << curFreq << "V \n";
 			outputs[0].setVoltage(curFreq);
 		}
@@ -61,6 +59,8 @@ struct CirclesWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+		addParam(createParamCentered<RoundBlackSnapKnob>(mm2px(Vec(24.694, 30.145)), module, Circles::INTERVAL_PARAM));
 
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(37.486, 115.128)), module, Circles::OUTPUT_OUTPUT));
 	}
