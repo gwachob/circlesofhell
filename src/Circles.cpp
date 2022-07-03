@@ -8,6 +8,7 @@ struct Circles : Module {
 		PARAMS_LEN
 	};
 	enum InputId {
+		STEP_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
@@ -19,7 +20,7 @@ struct Circles : Module {
 	};
 
 	dsp::Timer stepTimer;
-	// dsp::SchmittTrigger sequenceTrigger;
+	dsp::SchmittTrigger stepTrigger;
 	float currentVoltage=0;
 	const float START_FREQ = 0; // Start at zero for base freq which is usually FREQ_C4 (0 volts)
 	float curFreq = START_FREQ;
@@ -28,17 +29,14 @@ struct Circles : Module {
 	Circles() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(INTERVAL_PARAM, 1, 11, 7, "Step Interval", " semitone(s)");
+		configInput(STEP_INPUT, "");
 		configOutput(OUTPUT_OUTPUT, "");
 		stepTimer.reset();
 	}
 
 	void process(const ProcessArgs& args) override 
 	{
-		if (args.frame == 0) {
-			std::cerr << "Setting to initial frequency voltage of " << curFreq << "\n";
-			outputs[0].setVoltage(curFreq);
-		} else if (stepTimer.process(args.sampleTime) > 1) {
-			stepTimer.reset();
+		if (stepTrigger.process(inputs[STEP_INPUT].getVoltage(), 0.1f, 2.f)) {
 			circleStep = (circleStep + int(params[INTERVAL_PARAM].getValue()))  % 12;
 			curFreq = START_FREQ + /* 1v * */ simd::pow(2.f, circleStep/12.f);
 			std::cerr << "Step is " << circleStep << "\n";
@@ -62,7 +60,8 @@ struct CirclesWidget : ModuleWidget {
 
 		addParam(createParamCentered<RoundBlackSnapKnob>(mm2px(Vec(24.694, 30.145)), module, Circles::INTERVAL_PARAM));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(37.486, 115.128)), module, Circles::OUTPUT_OUTPUT));
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(14.508, 115.36)), module, Circles::STEP_INPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(38.194, 115.36)), module, Circles::OUTPUT_OUTPUT));
 	}
 };
 
